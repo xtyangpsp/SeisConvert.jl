@@ -1,0 +1,13 @@
+name = "SeisConvert"
+uuid = "2da01664-975d-11e9-136d-b1577e504ac3"
+authors = ["Xiaotao_Yang"]
+version = "0.1.0"
+
+[compat]
+julia = "1.1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
