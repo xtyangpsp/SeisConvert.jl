@@ -3,6 +3,12 @@ uuid = "2da01664-975d-11e9-136d-b1577e504ac3"
 authors = ["Xiaotao_Yang"]
 version = "0.1.0"
 
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+SeisIO = "b372bb87-02dd-52bb-bcf6-c30dd83fd342"
+
 [compat]
 julia = "1.1"
 
