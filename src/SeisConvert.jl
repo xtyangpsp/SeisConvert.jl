@@ -2,9 +2,10 @@ __precompile__()
 module SeisConvert
 #This module contains a series of functions to convert seismic data
 #between different formats.
-
-# Fields: SeisData, SeisChannel, SeisEvent.data
-# 
+# By Xiaotao Yang
+#
+###############################################################
+# Data format for: SeisData, SeisChannel, SeisEvent.data
 # Field	Description
 # :n	Number of channels [^1]
 # :c	TCP connections feeding data to this object [^1]
@@ -24,10 +25,26 @@ module SeisConvert
 # :x	Data
 # [^1]: Not present in SeisChannel objects.
 #
+###############################################################
+# JLD2 file format:
+# The JLD2 data includes the following metadata (based on the format defined in SeisDownload):
+# info/DLtimestamplist: this saves the tiem stamps as indices of each time group
+# info/stationlist: this is the list of stations in each time group, defined by the timestamplist
+# info/starttime: starttime of the group, can be the minimum start time for multiple data segments.
+# info/endtime: endtime of the group, can be the maximum end time for multiple data segments.
+# info/DL_time_unit: length of the data in time (duration), not number of samples
+# SeisData under each timestamp group, the data file (attribute) is named by the stationname in stationlist.
+#           Usually in the format of NET.STA.LOC.CHAN
+#
+###############################################################
+# SAC data format:
+# Follows the standard SAC format.
+#
 
-using JLD2, SeisIO, Printf, Dates
+using SeisIO
 
 # import individual function for each conversion
+include("utilities.jl")
 include("sac2jld2.jl")
 
 end # module
