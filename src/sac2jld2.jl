@@ -89,24 +89,24 @@ end
 
 """
 
-    sac2jld2(infilelist,timestamp,outfile)
+    sac2jld2(filelist,timestamp,outfile)
 
-Saves sac files based on a filelist generated using ls or other methods (in) to
+Saves sac files based on a filelist generated using ls() in Julia to
 JLD2 file (out), which is explicitly specified.
 
     Arguments:
-    infilelist: filelist including all sacfiles with the same tiemstamp, e.g., same day
+    filelist: An String Array including all sacfiles with the same tiemstamp, e.g., same day
     tiemstamp: this must be specified for the sac fiels, assuming they all share
                 the same time stamp. Suggested format: 2019.06.27T00.00.00
     outfile: output file name for the JLD2 file. All data fiels will be readin and
                 saved to a single JLD2 file.
 """
 
-function sac2jld2(infilelist::String,timestamp::String,outfile::String)
+function sac2jld2(filelist::Array{String,1},timestamp::String,outfile::String)
     # print("I convert and pack all SAC files to a JLD2 file.\n")
 
     #read the filenames from the infilelist into a strinng array
-    filelist = readfilelist(infilelist)
+    # filelist = readfilelist(infilelist)
 
     stationlist = String[];
     DLtimestamplist = String[];
