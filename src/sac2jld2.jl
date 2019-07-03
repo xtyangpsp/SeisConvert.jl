@@ -40,7 +40,7 @@ function sac2jld2(infile::String)
     file["info/DL_time_unit"]= saclength[1]; #length of the data in time (duration), not number of samples
 
     #save the waveform data as SeisData format.
-    file[stemp] = sacin[1];
+    file[stemp] = sacin;
 
     JLD2.close(file);
 
@@ -80,7 +80,7 @@ function sac2jld2(infile::String,outfile::String)
     file["info/DL_time_unit"]= saclength[1]; #length of the data in time (duration), not number of samples
 
     #save the waveform data as SeisData format.
-    file[stemp] = sacin[1];
+    file[stemp] = sacin;
 
     JLD2.close(file);
 
@@ -148,7 +148,18 @@ function sac2jld2(filelist::Array{String,1},timestamp::String,outfile::String)
         stemp = joinpath(timestamp,sacin.id[1]);
 
         #save the waveform data as SeisData format.
-        file[stemp] = sacin[1];
+        try
+            file[stemp] = sacin;
+        catch saveerror
+            println(saveerror)
+            if occursin("already present within this group",string(saveerror))
+                # creating multiple channels
+                println(stemp,"::Appending to form multiple channels.")
+                append(file[stemp],sacin[1])
+            else
+                error("Cannot save group: ",stemp," to ",outfile)
+            end
+        end
         count += 1;
     end
     starttime = u2d(stimemin); #convert union time to calendar time;
@@ -217,7 +228,18 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
             stemp = joinpath(timestamplist[countdir],sacin.id[1]);
 
             #save the waveform data as SeisData format.
-            file[stemp] = sacin[1];
+            try
+                file[stemp] = sacin[1];
+            catch saveerror
+                println(saveerror)
+                if occursin("already present within this group",string(saveerror))
+                    # creating multiple channels
+                    println(stemp,"::Appending to form multiple channels.")
+                    append(file[stemp],sacin)
+                else
+                    error("Cannot save group: ",stemp," to ",outfile)
+                end
+            end
             count += 1
         end #end of loop for all sac files within one group/directory
         print(count," sac files \n")
