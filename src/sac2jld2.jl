@@ -155,7 +155,7 @@ function sac2jld2(filelist::Array{String,1},timestamp::String,outfile::String)
             if occursin("already present within this group",string(saveerror))
                 # creating multiple channels
                 println(stemp,"::Appending to form multiple channels.")
-                append(file[stemp],sacin[1])
+                append!(file[stemp],sacin[1])
             else
                 error("Cannot save group: ",stemp," to ",outfile)
             end
@@ -235,7 +235,7 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
                 if occursin("already present within this group",string(saveerror))
                     # creating multiple channels
                     println(stemp,"::Appending to form multiple channels.")
-                    append(file[stemp],sacin)
+                    append!(file[stemp],sacin)
                 else
                     error("Cannot save group: ",stemp," to ",outfile)
                 end
