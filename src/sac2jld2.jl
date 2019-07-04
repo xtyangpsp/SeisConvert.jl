@@ -4,6 +4,16 @@ using Dates, SeisIO, JLD2
 
 # Converting sac data to JLD2 format. There are options to save to JLD2 format
 # as single file or separate files for each sac file.
+"""
+Key features:
+1. Can be used to convert individual SAC file or a group/list of SAC files.
+2. Handles the situation when multiple data files were download for the same station
+    and channel. Those files will be merged into one single SeisData object with
+    multiple SeisChannel entries.
+3. All SAC headers are kept and saved in :misc filed of the SeisData object.
+
+"""
+
 
 """
 
@@ -100,6 +110,7 @@ JLD2 file (out), which is explicitly specified.
                 the same time stamp. Suggested format: 2019.06.27T00.00.00
     outfile: output file name for the JLD2 file. All data fiels will be readin and
                 saved to a single JLD2 file.
+    verbose: if true, the code will print out more messages. Default is false.
 """
 
 function sac2jld2(filelist::Array{String,1},timestamp::String,outfile::String,verbose::Bool=false)
@@ -197,6 +208,7 @@ All sac files will be saved into one single JLD2 file (out), which is explicitly
     timestamplist: An array of strings storing the time stamps assigning to each SAC file group.
     outfile: output file name for the JLD2 file. All data fiels will be readin and
                 saved to a single JLD2 file.
+    verbose: if true, the code will print out more messages. Default is false.
 """
 
 function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},outfile::String,verbose::Bool=false)

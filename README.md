@@ -9,7 +9,7 @@
 
 ## Installation
 
-Then from the Julia command prompt:
+From the Julia command prompt:
 
 1. Press ] to enter pkg.
 2. Type or copy: `add https://github.com/xtyangpsp/SeisConvert.jl`
@@ -20,5 +20,3 @@ Then from the Julia command prompt:
 See examples of using each tool in Examples directory.
 1. cd to the individual example directory, e.g., sac2jld2
 2. run in terminal: `julia exec.jl`
-
-
