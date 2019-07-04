@@ -102,7 +102,7 @@ JLD2 file (out), which is explicitly specified.
                 saved to a single JLD2 file.
 """
 
-function sac2jld2(filelist::Array{String,1},timestamp::String,outfile::String,verbose:Bool=false)
+function sac2jld2(filelist::Array{String,1},timestamp::String,outfile::String,verbose::Bool=false)
     # print("I convert and pack all SAC files to a JLD2 file.\n")
 
     #read the filenames from the infilelist into a strinng array
@@ -193,7 +193,7 @@ All sac files will be saved into one single JLD2 file (out), which is explicitly
                 saved to a single JLD2 file.
 """
 
-function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},outfile::String,verbose:Bool=false)
+function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},outfile::String,verbose::Bool=false)
     if length(sacdirlist) != length(timestamplist)
         error("sacdirlist and timestamplist must be the same length!")
     end
