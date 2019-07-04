@@ -215,7 +215,7 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
     file["info/endtime"] = timestamplist[end]; #similar to starttime, here we use the last value in timestamplist as the endtime.
 
     #in the loop for each sac file in each SAC directory. we will find the maximum saclength.
-    # countdir=1;
+    countdir=1;
     for sacdir = sacdirlist
         filelist=ls(joinpath(sacdir,"*.sac"));
 
@@ -271,8 +271,8 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
         end #end of loop for all sac files within one group/directory
         if verbose == true
             print("-----------------------> ",count," sac files \n")
-            # countdir += 1;
         end
+        countdir += 1;
 
         stationlist=unique(stationlisttemp)
     end #end of loop for all SAC directories.
