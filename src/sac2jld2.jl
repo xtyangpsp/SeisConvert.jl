@@ -89,7 +89,7 @@ end
 
 """
 
-    sac2jld2(filelist,timestamp,outfile)
+    sac2jld2(filelist,timestamp,outfile,verbose=false)
 
 Saves sac files based on a filelist generated using ls() in Julia to
 JLD2 file (out), which is explicitly specified.
@@ -102,7 +102,7 @@ JLD2 file (out), which is explicitly specified.
                 saved to a single JLD2 file.
 """
 
-function sac2jld2(filelist::Array{String,1},timestamp::String,outfile::String)
+function sac2jld2(filelist::Array{String,1},timestamp::String,outfile::String,verbose:Bool=false)
     # print("I convert and pack all SAC files to a JLD2 file.\n")
 
     #read the filenames from the infilelist into a strinng array
@@ -177,7 +177,7 @@ end
 
 """
 
-    sac2jld2(sacdirlist,timestamplist,outfile)
+    sac2jld2(sacdirlist,timestamplist,outfile,verbose=false)
 
 Searches for all sac files scanning throgh the sacdirlist (Array{String,1}). The sac files
     in each sac directory are assigned to one time stamp based on timestamplist (Array{String,1}).
@@ -193,7 +193,7 @@ All sac files will be saved into one single JLD2 file (out), which is explicitly
                 saved to a single JLD2 file.
 """
 
-function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},outfile::String)
+function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},outfile::String,verbose:Bool=false)
     if length(sacdirlist) != length(timestamplist)
         error("sacdirlist and timestamplist must be the same length!")
     end
@@ -212,8 +212,11 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
     countdir=1;
     for sacdir = sacdirlist
         filelist=ls(joinpath(sacdir,"*.sac"));
-        # print("Converting SAC files in directory: [ ",sacdir," ] ... ",countdir," => ")
-        print("Converting SAC files in directory: [ ",sacdir," ] ... \n")
+        if verbose
+            print("Converting SAC files in directory: [ ",sacdir," ] ... ",countdir," => ")
+        else
+            print("Converting SAC files in directory: [ ",sacdir," ] ... \n")
+        end
         count = 0
         stationlisttemp = String[];
         for infile = filelist
@@ -241,10 +244,14 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
                     error("Cannot save group: ",stemp," to ",outfile)
                 end
             end
-            count += 1
+            if verbose
+                count += 1
+            end
         end #end of loop for all sac files within one group/directory
-        # print(count," sac files \n")
-        countdir += 1;
+        if verbose
+            print(count," sac files \n")
+            countdir += 1;
+        end
 
         stationlist=unique(stationlisttemp)
     end #end of loop for all SAC directories.
