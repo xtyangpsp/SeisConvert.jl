@@ -212,7 +212,8 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
     countdir=1;
     for sacdir = sacdirlist
         filelist=ls(joinpath(sacdir,"*.sac"));
-        print("Converting SAC files in directory: [ ",sacdir," ] ... ",countdir," => ")
+        # print("Converting SAC files in directory: [ ",sacdir," ] ... ",countdir," => ")
+        print("Converting SAC files in directory: [ ",sacdir," ] ... \n")
         count = 0
         stationlisttemp = String[];
         for infile = filelist
@@ -242,7 +243,7 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
             end
             count += 1
         end #end of loop for all sac files within one group/directory
-        print(count," sac files \n")
+        # print(count," sac files \n")
         countdir += 1;
 
         stationlist=unique(stationlisttemp)
