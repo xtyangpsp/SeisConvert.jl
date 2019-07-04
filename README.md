@@ -19,6 +19,6 @@ Then from the Julia command prompt:
 ## Example
 See examples of using each tool in Examples directory.
 1. cd to the individual example directory, e.g., sac2jld2
-2. run in terminal: julia exec.jl
+2. run in terminal: `julia exec.jl`
 
 
