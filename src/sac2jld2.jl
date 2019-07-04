@@ -40,7 +40,7 @@ function sac2jld2(infile::String)
     file["info/DL_time_unit"]= saclength[1]; #length of the data in time (duration), not number of samples
 
     #save the waveform data as SeisData format.
-    file[stemp] = sacin;
+    file[stemp] = SeisData(sacin);
 
     JLD2.close(file);
 
@@ -80,7 +80,7 @@ function sac2jld2(infile::String,outfile::String)
     file["info/DL_time_unit"]= saclength[1]; #length of the data in time (duration), not number of samples
 
     #save the waveform data as SeisData format.
-    file[stemp] = sacin;
+    file[stemp] = SeisData(sacin);
 
     JLD2.close(file);
 
@@ -149,13 +149,13 @@ function sac2jld2(filelist::Array{String,1},timestamp::String,outfile::String)
 
         #save the waveform data as SeisData format.
         try
-            file[stemp] = sacin;
+            file[stemp] = SeisData(sacin);
         catch saveerror
             println(saveerror)
             if occursin("already present within this group",string(saveerror))
                 # creating multiple channels
                 println(stemp,"::Appending to form multiple channels.")
-                append!(file[stemp],sacin[1])
+                append!(file[stemp],SeisData(sacin))
             else
                 error("Cannot save group: ",stemp," to ",outfile)
             end
@@ -229,13 +229,13 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
 
             #save the waveform data as SeisData format.
             try
-                file[stemp] = sacin[1];
+                file[stemp] = SeisData(sacin);
             catch saveerror
                 println(saveerror)
                 if occursin("already present within this group",string(saveerror))
                     # creating multiple channels
                     println(stemp,"::Appending to form multiple channels.")
-                    append!(file[stemp],sacin)
+                    append!(file[stemp],SeisData(sacin))
                 else
                     error("Cannot save group: ",stemp," to ",outfile)
                 end
