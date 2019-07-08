@@ -212,6 +212,7 @@ function sac2jld2(fhandle::JLD2.JLDFile, sacdir::String,timestamp::String,verbos
 
         #save to jld2
         stemp = joinpath(timestamp,sacin.id[1]);
+        println(stemp)
         if stemp == stemp_pre
             println(stemp," exists. Appending to form multiple channels.")
             append!(fhandle[stemp],SeisData(sacin))
