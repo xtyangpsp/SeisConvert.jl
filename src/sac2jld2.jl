@@ -205,7 +205,7 @@ function sac2jld2(fhandle::JLD2.JLDFile, sacdir::String,timestamp::String,verbos
     #in the loop for each sac file. we will find the minimum starttime, maximum endtime, and maximum saclength.
     for infile = filelist
         if verbose == true
-            print("Converting SAC file: [ ",infile," ] ... ",count,"\n")
+            print("Converting SAC file: [ ",infile," ] ...\n")
         end
 
         sacin = SeisIO.read_data("sac",infile,full=true);
