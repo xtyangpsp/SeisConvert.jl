@@ -1,4 +1,6 @@
 # some utility functions.
+using SeisIO
+
 export readfilelist
 
 function readfilelist(infilelist::String)

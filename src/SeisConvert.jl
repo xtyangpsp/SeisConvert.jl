@@ -82,6 +82,7 @@ using SeisIO
 # import individual function for each conversion
 include("utilities.jl")
 include("sac2jld2.jl")
+include("seisconvert_parallel.jl")
 include("jld22sac.jl")  #converting jld2 format to sac
 
 end # module
