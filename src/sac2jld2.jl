@@ -273,8 +273,8 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
         stemp_pre = "-"
         for infile = filelist
             sacin = SeisIO.read_data("sac",infile,full=true);
-            if sacdir == sacdirlist[1]
-                println(sacdir)
+            if sacdir == sacdirlist[1] && infile == filelist[1]
+                # println(sacdir)
                 file["info/DL_time_unit"]= sacin.t[1][2]/sacin.fs; #length of the data in time (duration), not number of samples;
                 #convert from number of samples to time duration.
             end
