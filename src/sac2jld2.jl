@@ -355,14 +355,11 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
     stationlist = String[];
     #length of the data in time (duration), not number of samples
     file = jldopen(outfile,"w")
-    
+
     file["info/DLtimestamplist"] = timestamplist;
     file["info/starttime"] = timestamplist[1];
     #here we use the first value in timestamplist as the starttime for a group of multiple timestamp data.
     file["info/endtime"] = timestamplist[end]; #similar to starttime, here we use the last value in timestamplist as the endtime.
-
-    #call pmap to accomplish the prallel processing
-    perror=pmap((x,y)->sac2jld2(file,x,y,verbose),sacdirlist,timestamplist)
 
     for sacdir = sacdirlist, ts = timestamplist
         filelist=ls(joinpath(sacdir,"*.sac"));
@@ -379,6 +376,10 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
                 println(stemp," exists. Append to form multiple channels.")
                 append!(file[stemp],SeisData(Sdata))
             else
+                if verbose == true
+                    println("Saving ",stemp)
+                end
+                
                 file[stemp] = SeisData(Sdata);
             end
 
