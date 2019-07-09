@@ -361,7 +361,7 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
     #here we use the first value in timestamplist as the starttime for a group of multiple timestamp data.
     file["info/endtime"] = timestamplist[end]; #similar to starttime, here we use the last value in timestamplist as the endtime.
 
-    for (sacdir,ts) in zip(sacdirlist,imestamplist)
+    for (sacdir,ts) in zip(sacdirlist,timestamplist)
         filelist=ls(joinpath(sacdir,"*.sac"));
 
         print("Converting for directory: [ ",sacdir," ] ... \n")
