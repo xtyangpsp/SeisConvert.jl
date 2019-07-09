@@ -273,7 +273,7 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
             sacin = SeisIO.read_data("sac",infile,full=true);
             # push!(stationlisttemp,sacin.id[1])  #pass the 1st element of sacin.id[] to the station list
 
-            if infile == filelist[1]
+            if ts == timestamplist[1]
                 file["info/DL_time_unit"]= sacin.t[1][2]/sacin.fs; #length of the data in time (duration), not number of samples;
                 #convert from number of samples to time duration.
             end
@@ -366,9 +366,9 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
                 println(stemp," exists. Append to form multiple channels.")
                 append!(file[stemp],SeisData(Sdata))
             else
-                if verbose == true
-                    println("Saving ",stemp)
-                end
+                # if verbose == true
+                #     println("Saving ",stemp)
+                # end
 
                 file[stemp] = SeisData(Sdata);
             end
