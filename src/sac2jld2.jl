@@ -260,7 +260,7 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
     #in the loop for each sac file in each SAC directory. we will find the maximum saclength.
     # countdir=1;
     t1all=0
-
+    t2all=0
     for (sacdir,ts) in zip(sacdirlist,timestamplist)
 
         t0=time()
@@ -272,8 +272,8 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
         # stationlisttemp = String[];
 
         stemp_pre = "-"
-        t1=@elapsed for infile = filelist
-            sacin = SeisIO.read_data("sac",infile,full=true);
+        for infile = filelist
+            t1=@elapsed sacin = SeisIO.read_data("sac",infile,full=true);
             if sacdir == sacdirlist[1] && infile == filelist[1]
                 # println(sacdir)
                 file["info/DL_time_unit"]= sacin.t[1][2]/sacin.fs; #length of the data in time (duration), not number of samples;
@@ -292,7 +292,7 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
             #     println("00 current: ",stemp)
             #     println("11 previous: ",stemp_pre)
             # end
-            if stemp == stemp_pre
+            t2=@elapsed if stemp == stemp_pre
                 println(stemp," exists. Append to form multiple channels.")
                 append!(file[stemp],SeisData(sacin))
             else
@@ -310,9 +310,10 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
             print("                ----------------> ",length(filelist)," sac files, time used: ",time() - t0,"\n")
         end
         t1all += t1
+        t2all += t2
     end #end of loop for all SAC directories.
 
-    println("t1all: ",t1all)
+    println([t1all, t2all])
     #the following info dat is saved after running through the whole group.
     file["info/stationlist"] = stationlist;
 
