@@ -249,7 +249,7 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
 
     stationlist = String[];
 
-    saclengthmax = 0; #initiate the length as zero, will find the maximum value after looping through the files.
+    # saclengthmax = 0; #initiate the length as zero, will find the maximum value after looping through the files.
 
     file = jldopen(outfile, "w");
     file["info/DLtimestamplist"] = timestamplist;
@@ -258,27 +258,32 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
     file["info/endtime"] = timestamplist[end]; #similar to starttime, here we use the last value in timestamplist as the endtime.
 
     #in the loop for each sac file in each SAC directory. we will find the maximum saclength.
-    countdir=1;
-    for sacdir = sacdirlist
+    # countdir=1;
+    for (sacdir,ts) in zip(sacdirlist,timestamplist)
+        t0=time()
         filelist=ls(joinpath(sacdir,"*.sac"));
 
         print("Converting for directory: [ ",sacdir," ] ... \n")
 
-        count = 0
-        stationlisttemp = String[];
+        # count = 0
+        # stationlisttemp = String[];
+
         stemp_pre = "-"
         for infile = filelist
             sacin = SeisIO.read_data("sac",infile,full=true);
-            push!(stationlisttemp,sacin.id[1])  #pass the 1st element of sacin.id[] to the station list
+            # push!(stationlisttemp,sacin.id[1])  #pass the 1st element of sacin.id[] to the station list
 
-            saclength = sacin.t[1][2]/sacin.fs; #convert from number of samples to time duration.
-            if saclength[1] > saclengthmax
-                saclengthmax = saclength[1]
+            if infile == filelist[1]
+                file["info/DL_time_unit"]= sacin.t[1][2]/sacin.fs; #length of the data in time (duration), not number of samples;
+                #convert from number of samples to time duration.
             end
+            # if saclength[1] > saclengthmax
+            #     saclengthmax = saclength[1]
+            # end
 
             #save to jld2
             #save the waveform data as SeisData format.
-            stemp = joinpath(timestamplist[countdir],sacin.id[1]);
+            stemp = joinpath(ts,sacin.id[1]);
             # if verbose == true
             #     println("00 current: ",stemp)
             #     println("11 previous: ",stemp_pre)
@@ -289,40 +294,21 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
             else
                 file[stemp] = SeisData(sacin);
             end
-            """
-            # try
-                    file[stemp] = SeisData(sacin);
-                end
-            # catch saveerror
-                # stemp = joinpath(timestamplist[countdir],sacin.id[1]);
-                # append!(file[stemp],SeisData(sacin))
-                # println(saveerror)
-                # if occursin("already present within this group",string(saveerror))
-                #     stemp = joinpath(timestamplist[countdir],sacin.id[1]);
-                #     # creating multiple channels
-                #     println(stemp,"::Appending to form multiple channels.")
-                #     append!(file[stemp],SeisData(sacin))
-                # else
-                #     error("Cannot save group: ",stemp," to ",outfile)
-                # end
-            end
-            """
-            stemp_pre = stemp;
-            if verbose == true
-                count += 1
-            end
-        end #end of loop for all sac files within one group/directory
-        if verbose == true
-            print("-----------------------> ",count," sac files \n")
-        end
-        countdir += 1;
 
-        stationlist=unique(stationlisttemp)
+            stemp_pre = stemp;
+            # if verbose == true
+            #     count += 1
+            # end
+        end #end of loop for all sac files within one group/directory
+
+        stationlist = unique(vcat(stationlist,keys(file[ts])))
+        if verbose == true
+            print("                ----------------> ",length(filelist)," sac files, time used: ",time() - t0,"\n")
+        end
     end #end of loop for all SAC directories.
 
     #the following info dat is saved after running through the whole group.
     file["info/stationlist"] = stationlist;
-    file["info/DL_time_unit"]= saclengthmax; #length of the data in time (duration), not number of samples
 
     JLD2.close(file);
 
@@ -362,6 +348,7 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
     file["info/endtime"] = timestamplist[end]; #similar to starttime, here we use the last value in timestamplist as the endtime.
 
     for (sacdir,ts) in zip(sacdirlist,timestamplist)
+        t0=time()
         filelist=ls(joinpath(sacdir,"*.sac"));
 
         print("Converting for directory: [ ",sacdir," ] ... \n")
@@ -389,6 +376,9 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
             stemp_pre = stemp;
         end
         stationlist = unique(vcat(stationlist,keys(file[ts])))
+        if verbose == true
+            print("                ----------------> ",length(filelist)," sac files, time used: ",time() - t0,"\n")
+        end
     end #end of loop for all SAC directories.
 
     #the following info dat is saved after running through the whole group.
