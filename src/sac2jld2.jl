@@ -353,12 +353,7 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
     end
 
     stationlist = String[];
-    filelisttemp=ls(joinpath(sacdirlist[1],"*.sac"));
-    sacin0 = SeisIO.read_data("sac",filelisttemp[1],full=true);
-
-    file = jldopen(outfile, "w");
-    saclengthmax = sacin0.t[1][2]/sacin0.fs; #initiate the length as zero, will find the maximum value after looping through the files.
-    file["info/DL_time_unit"]= saclengthmax; #length of the data in time (duration), not number of samples
+    #length of the data in time (duration), not number of samples
 
     file["info/DLtimestamplist"] = timestamplist;
     file["info/starttime"] = timestamplist[1];
@@ -368,10 +363,28 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
     #call pmap to accomplish the prallel processing
     perror=pmap((x,y)->sac2jld2(file,x,y,verbose),sacdirlist,timestamplist)
 
-    #loop through timestamplist to get the stationlist
-    for ts in timestamplist
+    for sacdir = sacdirlist, ts = timestamplist
+        filelist=ls(joinpath(sacdir,"*.sac"));
+
+        print("Converting for directory: [ ",sacdir," ] ... \n")
+
+        S=pmap(x->SeisIO.read_data("sac",x,full=true),filelist)
+
+        file["info/DL_time_unit"]= S[1].t[1][2]/S[1].fs;
+        stemp_pre = "-"
+        for Sdata = S
+            stemp = joinpath(ts,Sdata.id[1])
+            if stemp == stemp_pre
+                println(stemp," exists. Append to form multiple channels.")
+                append!(file[stemp],SeisData(Sdata))
+            else
+                file[stemp] = SeisData(Sdata);
+            end
+
+            stemp_pre = stemp;
+        end
         stationlist = unique(vcat(stationlist,keys(file[ts])))
-    end
+    end #end of loop for all SAC directories.
 
     #the following info dat is saved after running through the whole group.
     file["info/stationlist"] = stationlist;
