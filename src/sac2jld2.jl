@@ -259,7 +259,9 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
 
     #in the loop for each sac file in each SAC directory. we will find the maximum saclength.
     # countdir=1;
+
     for (sacdir,ts) in zip(sacdirlist,timestamplist)
+
         t0=time()
         filelist=ls(joinpath(sacdir,"*.sac"));
 
@@ -271,12 +273,13 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
         stemp_pre = "-"
         for infile = filelist
             sacin = SeisIO.read_data("sac",infile,full=true);
-            # push!(stationlisttemp,sacin.id[1])  #pass the 1st element of sacin.id[] to the station list
-
-            if ts == timestamplist[1]
+            if sacdir == sacdirlist[1]
+                println(sacdir)
                 file["info/DL_time_unit"]= sacin.t[1][2]/sacin.fs; #length of the data in time (duration), not number of samples;
                 #convert from number of samples to time duration.
             end
+            # push!(stationlisttemp,sacin.id[1])  #pass the 1st element of sacin.id[] to the station list
+
             # if saclength[1] > saclengthmax
             #     saclengthmax = saclength[1]
             # end
