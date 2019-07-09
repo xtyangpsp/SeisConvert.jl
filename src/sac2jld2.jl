@@ -350,13 +350,19 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
     #here we use the first value in timestamplist as the starttime for a group of multiple timestamp data.
     file["info/endtime"] = timestamplist[end]; #similar to starttime, here we use the last value in timestamplist as the endtime.
 
+    function testread(x)
+        println(myid())
+        SeisIO.read_data("sac",x,full=true)
+    end
+
     for (sacdir,ts) in zip(sacdirlist,timestamplist)
         t0=time()
         filelist=ls(joinpath(sacdir,"*.sac"));
 
         print("Converting for directory: [ ",sacdir," ] ... \n")
 
-        S=pmap(x->SeisIO.read_data("sac",x,full=true),filelist)
+        #S=pmap(x->SeisIO.read_data("sac",x,full=true),filelist)
+        S=pmap(x->testread(x),filelist)
 
         if ts == timestamplist[1]
             file["info/DL_time_unit"]= S[1].t[1][2]/S[1].fs;
