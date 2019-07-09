@@ -1,6 +1,6 @@
 export jld22sac
 #
-using Dates, SeisIO, JLD2, SeisNoise
+using Dates, SeisIO, JLD2, SeisNoise, Sockets
 """
     Converting JLD2 format to sac files. There are options to read in JLD2 data
     in different types: SeisData (defined in SeisIO) and CorrData (defined in SeisNoise).
