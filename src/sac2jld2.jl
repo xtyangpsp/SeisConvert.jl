@@ -259,6 +259,7 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
 
     #in the loop for each sac file in each SAC directory. we will find the maximum saclength.
     # countdir=1;
+    t1all=0
 
     for (sacdir,ts) in zip(sacdirlist,timestamplist)
 
@@ -271,7 +272,7 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
         # stationlisttemp = String[];
 
         stemp_pre = "-"
-        for infile = filelist
+        t1=@elapsed for infile = filelist
             sacin = SeisIO.read_data("sac",infile,full=true);
             if sacdir == sacdirlist[1] && infile == filelist[1]
                 # println(sacdir)
@@ -308,8 +309,10 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
         if verbose == true
             print("                ----------------> ",length(filelist)," sac files, time used: ",time() - t0,"\n")
         end
+        t1all += t1
     end #end of loop for all SAC directories.
 
+    println("t1all: ",t1all)
     #the following info dat is saved after running through the whole group.
     file["info/stationlist"] = stationlist;
 
