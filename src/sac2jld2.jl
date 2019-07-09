@@ -303,14 +303,15 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
             # if verbose == true
             #     count += 1
             # end
+            t1all += t1
+            t2all += t2
         end #end of loop for all sac files within one group/directory
 
         stationlist = unique(vcat(stationlist,keys(file[ts])))
         if verbose == true
             print("                ----------------> ",length(filelist)," sac files, time used: ",time() - t0,"\n")
         end
-        t1all += t1
-        t2all += t2
+
     end #end of loop for all SAC directories.
 
     println([t1all, t2all])
