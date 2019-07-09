@@ -354,7 +354,8 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
 
     stationlist = String[];
     #length of the data in time (duration), not number of samples
-
+    file = jldopen(outfile,"w")
+    
     file["info/DLtimestamplist"] = timestamplist;
     file["info/starttime"] = timestamplist[1];
     #here we use the first value in timestamplist as the starttime for a group of multiple timestamp data.
