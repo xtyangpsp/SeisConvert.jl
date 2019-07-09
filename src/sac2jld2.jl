@@ -343,17 +343,21 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
 
     stationlist = String[];
     #length of the data in time (duration), not number of samples
-    file = jldopen(outfile,"w")
+    t5 = @elapsed file = jldopen(outfile,"w")
 
     file["info/DLtimestamplist"] = timestamplist;
     file["info/starttime"] = timestamplist[1];
     #here we use the first value in timestamplist as the starttime for a group of multiple timestamp data.
     file["info/endtime"] = timestamplist[end]; #similar to starttime, here we use the last value in timestamplist as the endtime.
 
-    function testread(x)
-        println(myid())
-        SeisIO.read_data("sac",x,full=true)
-    end
+    # function testread(x)
+    #     println(myid())
+    #     SeisIO.read_data("sac",x,full=true)
+    # end
+
+    t1all = 0
+    t2all = 0
+    t3all = 0
 
     for (sacdir,ts) in zip(sacdirlist,timestamplist)
         t0=time()
@@ -361,8 +365,8 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
 
         print("Converting for directory: [ ",sacdir," ] ... \n")
 
-        #S=pmap(x->SeisIO.read_data("sac",x,full=true),filelist)
-        S=pmap(x->testread(x),filelist)
+        t1 = @elapsed S=pmap(x->SeisIO.read_data("sac",x,full=true),filelist)
+        # S=pmap(x->testread(x),filelist)
 
         if ts == timestamplist[1]
             file["info/DL_time_unit"]= S[1].t[1][2]/S[1].fs;
@@ -373,13 +377,17 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
             stemp = joinpath(ts,Sdata.id[1])
             if stemp == stemp_pre
                 println(stemp," exists. Append to form multiple channels.")
-                append!(file[stemp],SeisData(Sdata))
+                t2= @elapsed append!(file[stemp],SeisData(Sdata))
+                t2all += t2
+
             else
                 # if verbose == true
                 #     println("Saving ",stemp)
                 # end
 
-                file[stemp] = SeisData(Sdata);
+                t3= @elapsed file[stemp] = SeisData(Sdata)
+                t3all += t3
+
             end
 
             stemp_pre = stemp;
@@ -388,7 +396,11 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
         if verbose == true
             print("                ----------------> ",length(filelist)," sac files, time used: ",time() - t0,"\n")
         end
+
+        t1all += t1
     end #end of loop for all SAC directories.
+
+    println([t5, t1all, t2all, t3all])
 
     #the following info dat is saved after running through the whole group.
     file["info/stationlist"] = stationlist;
