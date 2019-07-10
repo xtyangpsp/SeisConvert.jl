@@ -1,4 +1,4 @@
-using SeisIO, JLD2, Distributed
+using SeisIO, JLD2, Distributed, Sockets
 
 export sac2jld2, sac2jld2_par
 #
