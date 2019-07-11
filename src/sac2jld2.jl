@@ -417,4 +417,5 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
     JLD2.close(file);
 
     print("Saved JLD2 file to: ", outfile, "\n");
+    rmprocs(workers())
 end
