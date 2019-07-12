@@ -98,7 +98,9 @@ function corr2seis(C::CorrData)
     stel = C.misc["location"][stname].el
 
     for i = 1:size(S)[1]
-        S[i].x = C.corr[:,i] #waveform data
+        for tv in C.corr[:,i]
+            push!(S[i].x,tv)
+        end
 
         S[i].id = C.id
         S[i].name = C.name
