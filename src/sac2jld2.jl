@@ -31,6 +31,7 @@ function sac2jld2(infile::String)
     print("Converting SAC file: [ ",infile," ] ... \n")
     outfile = join([infile[1:end-3],"jld2"]); #trim the file name to remove .sac
     sacin = SeisIO.read_data("sac",infile,full=true);
+    sacin.misc["dlerror"] = 0
 
     stationlist = String[];
     push!(stationlist,sacin.id[1])  #pass the 1st element of sacin.id[] to the station list
@@ -71,6 +72,7 @@ function sac2jld2(infile::String,outfile::String)
     # print("I convert SAC file to JLD2 file.\n")
     print("Converting SAC file: [ ",infile," ] ... \n")
     sacin = SeisIO.read_data("sac",infile,full=true);
+    sacin.misc["dlerror"] = 0
 
     stationlist = String[];
     push!(stationlist,sacin.id[1])  #pass the 1st element of sacin.id[] to the station list
@@ -142,6 +144,8 @@ function sac2jld2(filelist::Array{String,1},timestamp::String,outfile::String,ve
         print("Converting SAC file: [ ",infile," ] ... ",count,"\n")
 
         sacin = SeisIO.read_data("sac",infile,full=true);
+        sacin.misc["dlerror"] = 0
+
         push!(stationlist,sacin.id[1])  #pass the 1st element of sacin.id[] to the station list
         # stationinfo = Dict(["stationlist" => stationlist,"stationmethod" => "sac2jld2","stationsrc" => "converted"])
         stimetemp = sacin.t[1][3]*1e-6; #convert mseconds to seconds;
@@ -209,6 +213,7 @@ function sac2jld2(fhandle::JLD2.JLDFile, sacdir::String,timestamp::String,verbos
         end
 
         sacin = SeisIO.read_data("sac",infile,full=true);
+        sacin.misc["dlerror"] = 0
 
         #save to jld2
         stemp = joinpath(timestamp,sacin.id[1]);
@@ -275,6 +280,8 @@ function sac2jld2(sacdirlist::Array{String,1},timestamplist::Array{String,1},out
         for infile = filelist
             # t1=@elapsed sacin = SeisIO.read_data("sac",infile,full=true);
             sacin = SeisIO.read_data("sac",infile,full=true);
+            sacin.misc["dlerror"] = 0
+
             if sacdir == sacdirlist[1] && infile == filelist[1]
                 # println(sacdir)
                 file["info/DL_time_unit"]= sacin.t[1][2]/sacin.fs; #length of the data in time (duration), not number of samples;
@@ -382,9 +389,11 @@ function sac2jld2_par(sacdirlist::Array{String,1},timestamplist::Array{String,1}
 
         stemp_pre = "-"
         for Sdata = S
+            Sdata.misc["dlerror"] = 0
             stemp = joinpath(ts,Sdata.id[1])
             if stemp == stemp_pre
                 println(stemp," exists. Append to form multiple channels.")
+
                 # t2= @elapsed append!(file[stemp],SeisData(Sdata))
                 append!(file[stemp],SeisData(Sdata))
                 # t2all += t2
