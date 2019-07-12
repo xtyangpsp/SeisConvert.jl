@@ -77,8 +77,8 @@ SeisChannel with 432000 samples
         (nx = 432000)
 
 """
-
-function corr2seis(C::CorrData)
+# richmisc: true if include location
+function corr2seis(C::CorrData,richmisc::Bool=true)
     #get the size of CorrData, to determine how many channels needed.
 
     #create an empty SeisData object with the right size.
@@ -88,14 +88,25 @@ function corr2seis(C::CorrData)
     # in loop, save customzed headers to misc dictionary.
     # save freqmin and freqmax twice:
     # 1. use real field names. 2. use USER0 and USER1, to be saved to SAC for later use.
-    evname = collect(keys(C.misc["location"]))[1]  #use the first entry in location as the event name
-    stname = collect(keys(C.misc["location"]))[2]
-    evla = C.misc["location"][evname].lat
-    evlo = C.misc["location"][evname].lon
-    evdp = C.misc["location"][evname].el
-    stla = C.misc["location"][stname].lat
-    stlo = C.misc["location"][stname].lon
-    stel = C.misc["location"][stname].el
+    if richmisc
+        evname = collect(keys(C.misc["location"]))[1]  #use the first entry in location as the event name
+        stname = collect(keys(C.misc["location"]))[2]
+        evla = C.misc["location"][evname].lat
+        evlo = C.misc["location"][evname].lon
+        evdp = C.misc["location"][evname].el
+        stla = C.misc["location"][stname].lat
+        stlo = C.misc["location"][stname].lon
+        stel = C.misc["location"][stname].el
+    else
+        evname = "event"  #use the first entry in location as the event name
+        stname = "receiver"
+        evla = 0.0
+        evlo = 0.0
+        evdp = 0.0
+        stla = 0.0
+        stlo = 0.0
+        stel = 0.0
+    end
 
     for i = 1:size(S)[1]
         for tv in C.corr[:,i]
@@ -109,7 +120,7 @@ function corr2seis(C::CorrData)
         S[i].gain = C.gain
         S[i].resp = C.resp
         S[i].src = C.name
-        S[i].t = [1 C.t[i]; size(C.corr,1) 0]
+        S[i].t = [1 C.t[i]; size(C.corr,1) 0]  #DEBUG;
         S[i].notes = C.notes
         # TO-DO get misc values
         S[i].misc = C.misc
