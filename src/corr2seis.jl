@@ -1,5 +1,5 @@
 # convert CorrData to SeisData
-using SeisIO, SeisNoise, Dates
+using SeisIO, SeisNoise, Dates, Logging
 """ Example of CorrData
 
 CorrData with 1 Corrs
@@ -78,7 +78,7 @@ SeisChannel with 432000 samples
 
 """
 # richmisc: true if include location
-function corr2seis(C::CorrData,richmisc::Bool=true)
+function corr2seis(C::CorrData)
     #get the size of CorrData, to determine how many channels needed.
 
     #create an empty SeisData object with the right size.
@@ -88,7 +88,16 @@ function corr2seis(C::CorrData,richmisc::Bool=true)
     # in loop, save customzed headers to misc dictionary.
     # save freqmin and freqmax twice:
     # 1. use real field names. 2. use USER0 and USER1, to be saved to SAC for later use.
-    if richmisc
+    stemp = split(C.name,".")
+    evname = join([stemp[1],stemp[2],stemp[3],stemp[4]],".")  #use the first entry in location as the event name
+    stname = join([stemp[5],stemp[6],stemp[7],stemp[8]],".")
+    evla = 0.0
+    evlo = 0.0
+    evdp = 0.0
+    stla = 0.0
+    stlo = 0.0
+    stel = 0.0
+    try
         evname = collect(keys(C.misc["location"]))[1]  #use the first entry in location as the event name
         stname = collect(keys(C.misc["location"]))[2]
         evla = C.misc["location"][evname].lat
@@ -97,80 +106,87 @@ function corr2seis(C::CorrData,richmisc::Bool=true)
         stla = C.misc["location"][stname].lat
         stlo = C.misc["location"][stname].lon
         stel = C.misc["location"][stname].el
-    else
-        evname = "event"  #use the first entry in location as the event name
-        stname = "receiver"
-        evla = 0.0
-        evlo = 0.0
-        evdp = 0.0
-        stla = 0.0
-        stlo = 0.0
-        stel = 0.0
+    catch miscerror
+        @warn "$miscerror : 'location' field not defined in misc. Use default locations (0.0)."
     end
 
     for i = 1:size(S)[1]
-        for tv in C.corr[:,i]
-            push!(S[i].x,tv)
-        end
-
-        S[i].id = C.id
-        S[i].name = C.name
-        S[i].loc = C.loc #todo: put source and receiver coordinates in the headers
-        S[i].fs = C.fs
-        S[i].gain = C.gain
-        S[i].resp = C.resp
-        S[i].src = C.name
-        S[i].t = [1 C.t[i]; size(C.corr,1) 0]  #DEBUG;
-        S[i].notes = C.notes
+        SC = SeisChannel();
+        # for tv in C.corr[:,i]
+        #     push!(SC.x,tv)
+        # end
+        SC.x = C.corr[:,i]
+        SC.id = C.id
+        SC.name = C.name
+        setfield!(SC.loc,:lat,stla)
+        setfield!(SC.loc,:lon,stlo)
+        setfield!(SC.loc,:dep,stel)
+        # = C.loc
+        SC.fs = C.fs
+        SC.gain = C.gain
+        SC.resp = C.resp
+        SC.src = C.name
+        SC.t = [1 Int64(C.t[i]*1e6);size(C.corr,1) 0]
+        SC.notes = C.notes
         # TO-DO get misc values
-        S[i].misc = C.misc
+        SC.misc = C.misc
 
         #update some values in misc for SAC headers.
-        S[i].misc["b"] = -1.0*C.maxlag
-        S[i].misc["e"] = C.maxlag
-        S[i].misc["delta"] = 1.0/C.fs
-        S[i].misc["npts"] = size(C.corr,1)
-        S[i].misc["depmin"] = minimum(C.corr[:,i])
-        S[i].misc["depmax"] = maximum(C.corr[:,i])
-        S[i].misc["depmen"] = sum(C.corr[:,i])/size(C.corr,1)
-        S[i].misc["kevnm"] = evname
-        S[i].misc["evla"] = evla
-        S[i].misc["evlo"] = evlo
-        S[i].misc["evdp"] = evdp
-        S[i].misc["stla"] = stla
-        S[i].misc["stlo"] = stlo
-        S[i].misc["stel"] = stel
-        S[i].misc["nzyear"] = Dates.year(u2d(C.t[i]))
-        S[i].misc["nzjday"] = Dates.date2epochdays(Date(u2d(C.t[i]))) - Dates.date2epochdays(Date(string(Dates.year(u2d(C.t[i])))*"-01-01")) + 1
-        S[i].misc["nzhour"] = Dates.hour(u2d(C.t[i]))
-        S[i].misc["nzmin"] = Dates.minute(u2d(C.t[i]))
-        S[i].misc["nzsec"] = Dates.second(u2d(C.t[i]))
-        S[i].misc["nzmsec"] = Dates.millisecond(u2d(C.t[i]))
-
-        S[i].misc["rotated"] = C.rotated
-        S[i].misc["corr_type"] =  C.corr_type
-        S[i].misc["kuser0"] =  C.corr_type
-        S[i].misc["freqmin"] = C.freqmin
-        S[i].misc["freqmax"] = C.freqmax
-        S[i].misc["user0"] = C.freqmin
-        S[i].misc["user1"] = C.freqmax
-        S[i].misc["cc_len"] = C.cc_len
-        S[i].misc["cc_step"] = C.cc_step
-        S[i].misc["user2"] = C.cc_len
-        S[i].misc["user3"] = C.cc_step
-        S[i].misc["whitened"] = C.whitened
-        S[i].misc["time_norm"] = C.time_norm
+        SC.misc["b"] = -1.0*C.maxlag
+        SC.misc["e"] = C.maxlag
+        SC.misc["delta"] = 1.0/C.fs
+        SC.misc["npts"] = size(C.corr,1)
+        SC.misc["depmin"] = minimum(C.corr[:,i])
+        SC.misc["depmax"] = maximum(C.corr[:,i])
+        SC.misc["depmen"] = sum(C.corr[:,i])/size(C.corr,1)
+        SC.misc["kevnm"] = evname
+        SC.misc["evla"] = evla
+        SC.misc["evlo"] = evlo
+        SC.misc["evdp"] = evdp
+        SC.misc["stla"] = stla
+        SC.misc["stlo"] = stlo
+        SC.misc["stel"] = stel
+        SC.misc["nzyear"] = Dates.year(u2d(C.t[i]))
+        SC.misc["nzjday"] = Dates.date2epochdays(Date(u2d(C.t[i]))) - Dates.date2epochdays(Date(string(Dates.year(u2d(C.t[i])))*"-01-01")) + 1
+        SC.misc["nzhour"] = Dates.hour(u2d(C.t[i]))
+        SC.misc["nzmin"] = Dates.minute(u2d(C.t[i]))
+        SC.misc["nzsec"] = Dates.second(u2d(C.t[i]))
+        SC.misc["nzmsec"] = Dates.millisecond(u2d(C.t[i]))
+        SC.misc["comp"] = C.comp
+        SC.misc["rotated"] = C.rotated
+        SC.misc["corr_type"] =  C.corr_type
+        # SC.misc["kuser0"] =  C.corr_type
+        SC.misc["freqmin"] = C.freqmin
+        SC.misc["freqmax"] = C.freqmax
+        # SC.misc["user0"] = C.freqmin
+        # SC.misc["user1"] = C.freqmax
+        SC.misc["cc_len"] = C.cc_len
+        SC.misc["cc_step"] = C.cc_step
+        # SC.misc["user2"] = C.cc_len
+        # SC.misc["user3"] = C.cc_step
+        # SC.misc["whitened"] = C.whitened
+        # SC.misc["time_norm"] = C.time_norm
+        # if C.whitened
+        #     SC.misc["kuser1"] =  "NOWHITND"
+        # else
+        #     SC.misc["kuser1"] =  "WHITENED"
+        # end
+        # if C.time_norm
+        #     SC.misc["kuser2"] =  "TIMENORM"
+        # else
+        #     SC.misc["kuser2"] =  "NOTIMENM"
+        # end
         if C.whitened
-            S[i].misc["kuser1"] =  "NOWHITND"
+            SC.misc["whitened"] =  "NOWHITND"
         else
-            S[i].misc["kuser1"] =  "WHITENED"
+            SC.misc["whitened"] =  "WHITENED"
         end
         if C.time_norm
-            S[i].misc["kuser2"] =  "TIMENORM"
+            SC.misc["time_norm"] =  "TIMENORM"
         else
-            S[i].misc["kuser2"] =  "NOTIMENM"
+            SC.misc["time_norm"] =  "NOTIMENM"
         end
-
+        S[i] = SC
     end
 
     return(S)

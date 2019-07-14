@@ -36,18 +36,18 @@ function jld22sac()
 end
 
 #
-function jld22sac(jldfile::String,sacdatadir::String,jldformatcode::String="TCD",sacformatcode::String="SR")
+function jld22sac(jldfile::String,sacrootdir::String; informat::String="TCD", outformat::String="SR", verbose::Bool=false)
 
     #first check JLD formatcode and sac output format/structrue code
-    if jldformatcode != "TSD" && jldformatcode != "TCD" && jldformatcode != "CTSD" && jldformatcode != "CTCD"
+    if informat != "TSD" && informat != "TCD" && informat != "CTSD" && informat != "CTCD"
         error("The input JLDFORMATCODE must be one of: TSD, TCD (default), CTSD, or CTCD. Run jld22sac() for detailed explanations.\n")
     end
-    if sacformatcode != "SR" && sacformatcode != "TG"
+    if outformat != "SR" && outformat != "TG"
         error("The input JLDFORMATCODE must be one of: SR (default), or TG. Run jld22sac() for detailed explanations.\n")
     end
 
     #create SAC data directory
-    mkpath(sacdatadir)
+    mkpath(sacrootdir)
 
     jfile = jldopen(jldfile,"r")
 
@@ -55,23 +55,35 @@ function jld22sac(jldfile::String,sacdatadir::String,jldformatcode::String="TCD"
     group1 = keys(jfile)
 
     for g1 = group1
-        print("Working on 1st level group: ",g1,"\n")
-        if jldformatcode == "TSD" || jldformatcode == "TCD" #only one level group
-            dlist = keys(jfile[g1]) #data list
-            for dfile = dlist
-                d = jfile[joinpath(g1,dfile)]
-                if jldformatcode == "TCD" # data file has CorrData type
-                    print("CorrData to SAC")
-                else # data file has SeisData type
-                    error("TSD is not ready yet. Coming soon.")
+        if g1 != "info"
+            if informat == "TSD" || informat == "TCD" #only one level group
+                println("Working on group: ",g1)
+                dlist = keys(jfile[g1]) #data list
+                for dfile = dlist
+                    if verbose
+                        println("  --> converting: ",dfile)
+                    end
+                    d = jfile[joinpath(g1,dfile)]
+                    if informat == "TCD" # data file has CorrData type
+                        # println("CorrData to SAC")
+                        if outformat == "SR" #Source -> Receiver -> SAC
+                            stemp = split(d.name,".")
+                            evname = join([stemp[1],stemp[2]],".")  #use the first entry in location as the event name
+                            stname = join([stemp[5],stemp[6]],".")
+                            # println(typeof(d))
+                            S=corr2seis(d)
+                            writesac_corr(S,outdir=string(joinpath(sacrootdir,evname,stname)))
+                        elseif outformat == "TG" #Timestamp -> SAC
+                            writesac_corr(corr2seis(d),outdir=string(joinpath(sacrootdir,g1)))
+                        end
+                    else # data file has SeisData type
+                        error("TSD is not ready yet. Coming soon.")
+                    end
                 end
+            else #need to do anotehr level loop for format CTSD or CTCD
+                error("CTSD and CTCD are not ready yet. Coming soon.")
             end
-        else #need to do anotehr level loop for format CTSD or CTCD
-            error("CTSD and CTCD are not ready yet. Coming soon.")
-
         end
-
-
     end #end of loop for the first level group tags
 
     JLD2.close(jfile)
