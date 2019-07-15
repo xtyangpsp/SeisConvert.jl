@@ -97,17 +97,18 @@ function corr2seis(C::CorrData)
     stla = 0.0
     stlo = 0.0
     stel = 0.0
-    try
-        evname = collect(keys(C.misc["location"]))[1]  #use the first entry in location as the event name
-        stname = collect(keys(C.misc["location"]))[2]
+    if in("location",collect(keys(C.misc)))
+        # println(C.name,": ",collect(keys(C.misc["location"])))
+        # evname = collect(keys(C.misc["location"]))[1]  #use the first entry in location as the event name
+        # stname = collect(keys(C.misc["location"]))[2]
         evla = C.misc["location"][evname].lat
         evlo = C.misc["location"][evname].lon
         evdp = C.misc["location"][evname].el
         stla = C.misc["location"][stname].lat
         stlo = C.misc["location"][stname].lon
         stel = C.misc["location"][stname].el
-    catch miscerror
-        @warn "$miscerror : 'location' field not defined in misc. Use default locations (0.0)."
+    else
+        @warn "$(C.name) : 'location' field not defined in misc. Use default locations (0.0)."
     end
 
     for i = 1:size(S)[1]
