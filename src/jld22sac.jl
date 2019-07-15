@@ -63,7 +63,7 @@ function jld22sac(jldfile::String,sacrootdir::String; informat::String="TCD", ou
     if !isempty(subset)
         subsetkeys = collect(keys(subset))
         if verbose
-            println("-- will only save subset data for: ")
+            println("Applying subset. Will only save subset data for: ")
             println(subsetkeys)
         end
 

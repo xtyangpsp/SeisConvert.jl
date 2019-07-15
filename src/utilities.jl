@@ -146,7 +146,7 @@ function fill_sac_corr(S::GphysChannel, ts::Bool, leven::Bool)
   m_s = string(tt[5]); m_s="0"^(2-length(m_s))*m_s
   s_s = string(tt[6]); s_s="0"^(2-length(s_s))*s_s
   ms_s = string(tt[7]); ms_s="0"^(3-length(ms_s))*ms_s
-  fname = join([y_s, j_s,h_s, m_s, s_s, ms_s, id[1], id[2], id[3], id[4], id[5],"sac"],'.')
+  fname = join([y_s, j_s,h_s, m_s, s_s, ms_s, id[1], id[2], id[3], id[4],id_temp[8],id[5],"sac"],'.')
   return (fv, iv, cv, fname)
 end
 
