@@ -16,10 +16,8 @@ function jld22sac()
             sacrootdir
         Optional:
             informat = infile (jld file) structure code (string).
-                TSD: JLD2 FILE -> Timestamp group -> SeisData;
-                TCD: JLD2 FILE -> Timestamp group -> CorrData; [DEFAULT]
-                CTSD: JLD2 FILE -> Component -> Timestamp group -> SeisData;
-                CTCD: JLD2 FILE -> Component -> Timestamp group -> CorrData;
+                TD: JLD2 FILE -> Timestamp group -> SeisData/CorrData; Type of data is detected automatically.
+                CTD: JLD2 FILE -> Component -> Timestamp group -> SeisData/CorrData;
             outformat = outfile (sac file) structre code (string)
                 SRC: Source -> Receiver -> Component -> SAC (timestamps and component information are
                     embeded in file names) #this is for CorrData only. [DEFAULT]
@@ -42,12 +40,12 @@ function jld22sac()
 end
 
 #
-function jld22sac(jldfile::String,sacrootdir::String; informat::String="TCD", outformat::String="SRC",
+function jld22sac(jldfile::String,sacrootdir::String; informat::String="TD", outformat::String="SRC",
     subset::Dict=Dict(), verbose::Bool=false)
 
     #first check JLD formatcode and sac output format/structrue code
-    if informat != "TSD" && informat != "TCD" && informat != "CTSD" && informat != "CTCD"
-        error("The input JLDFORMATCODE must be one of: TSD, TCD (default), CTSD, or CTCD. Run jld22sac() for detailed explanations.\n")
+    if informat != "TD" && informat != "CTD"
+        error("The input JLDFORMATCODE must be one of: TD (default) or CTD. Run jld22sac() for detailed explanations.\n")
     end
     if outformat != "SRC" && outformat != "TG"
         error("The input JLDFORMATCODE must be one of: SRC (default), or TG. Run jld22sac() for detailed explanations.\n")
@@ -91,158 +89,87 @@ function jld22sac(jldfile::String,sacrootdir::String; informat::String="TCD", ou
 
     for g1 = group1
         if g1 != "info"
-            if informat == "TSD" || informat == "TCD" #only one level group
+            if informat == "TD" #only one level group
                 println("Working on group: ",g1)
                 dlist = keys(jfile[g1]) #data list
                 for dfile = dlist
                     d = jfile[joinpath(g1,dfile)]
-                    if informat == "TCD" # data file has CorrData type
-                        # println("CorrData to SAC")
-                        stemp = split(d.name,".")
+                    # println("CorrData to SAC")
+                    stemp = split(d.name,".")
+                    if typeof(d) == CorrData # data file has CorrData type
                         srname = join([stemp[1],stemp[2]],".")  #use the first entry in location as the source name
                         rcname = join([stemp[5],stemp[6]],".")
                         comp = d.comp
-                        if outformat == "SRC" #Source -> Receiver -> SAC
-                            if subsetflag_sta
-                                if in(srname,subset[subsetkey_sta]) || in(rcname,subset[subsetkey_sta])
-                                    if subsetflag_comp
-                                        if in(comp,subset[subsetkey_comp])
-                                            if verbose
-                                                println("  --> converting: ",dfile)
-                                            end
-                                            S=corr2seis(d)
-                                            writesac_corr(S,outdir=string(joinpath(sacrootdir,srname,rcname,comp)))
-                                        end
-                                    else
-                                        if verbose
-                                            println("  --> converting: ",dfile)
-                                        end
-                                        S=corr2seis(d)
-                                        writesac_corr(S,outdir=string(joinpath(sacrootdir,srname,rcname,comp)))
-                                    end
-                                end
-                            else
-                                if subsetflag_comp
-                                    if in(comp,subset[subsetkey_comp])
-                                        if verbose
-                                            println("  --> converting: ",dfile)
-                                        end
-                                        S=corr2seis(d)
-                                        writesac_corr(S,outdir=string(joinpath(sacrootdir,srname,rcname,comp)))
-                                    end
-                                else
-                                    if verbose
-                                        println("  --> converting: ",dfile)
-                                    end
-                                    S=corr2seis(d)
-                                    writesac_corr(S,outdir=string(joinpath(sacrootdir,srname,rcname,comp)))
-                                end
-                            end
-                        elseif outformat == "TG" #Timestamp -> SAC
-                            if subsetflag_sta
-                                if in(srname,subset[subsetkey_sta]) || in(rcname,subset[subsetkey_sta])
-                                    if subsetflag_comp
-                                        if in(comp,subset[subsetkey_comp])
-                                            if verbose
-                                                println("  --> converting: ",dfile)
-                                            end
-                                            S=corr2seis(d)
-                                            writesac_corr(S,outdir=string(joinpath(sacrootdir,g1)))
-                                        end
-                                    else
-                                        if verbose
-                                            println("  --> converting: ",dfile)
-                                        end
-                                        S=corr2seis(d)
-                                        writesac_corr(S,outdir=string(joinpath(sacrootdir,g1)))
-                                    end
-                                end
-                            else
-                                if subsetflag_comp
-                                    if in(comp,subset[subsetkey_comp])
-                                        if verbose
-                                            println("  --> converting: ",dfile)
-                                        end
-                                        S=corr2seis(d)
-                                        writesac_corr(S,outdir=string(joinpath(sacrootdir,g1)))
-                                    end
-                                else
-                                    if verbose
-                                        println("  --> converting: ",dfile)
-                                    end
-                                    S=corr2seis(d)
-                                    writesac_corr(S,outdir=string(joinpath(sacrootdir,g1)))
-                                end
-                            end
-                        end
-                    else # data file has SeisData type
-                        # println("CorrData to SAC")
-                        stemp = split(d.id,".")
+                        S = corr2seis(d)
+                    elseif typeof(d) == SeisData # data file has SeisData type
                         rcname = join([stemp[1],stemp[2]],".")
                         comp = stemp[4]
-                        if outformat == "SRC" #Source -> Receiver -> SAC
-                            if subsetflag_sta
-                                if in(rcname,subset[subsetkey_sta])
-                                    if subsetflag_comp
-                                        if in(comp,subset[subsetkey_comp])
-                                            if verbose
-                                                println("  --> converting: ",dfile)
-                                            end
-                                            writesac_seis(d,outdir=string(joinpath(sacrootdir,rcname,comp)))
-                                        end
-                                    else
-                                        if verbose
-                                            println("  --> converting: ",dfile)
-                                        end
-                                        writesac_seis(d,outdir=string(joinpath(sacrootdir,rcname,comp)))
-                                    end
-                                end
-                            else
+                        S = d
+                    else
+                        error(typeof(d) " datatype not supported.")
+                    end
+                    if outformat == "SRC" #Source -> Receiver -> SAC
+                        if subsetflag_sta
+                            if in(srname,subset[subsetkey_sta]) || in(rcname,subset[subsetkey_sta])
                                 if subsetflag_comp
                                     if in(comp,subset[subsetkey_comp])
                                         if verbose
                                             println("  --> converting: ",dfile)
                                         end
-                                        writesac_seis(d,outdir=string(joinpath(sacrootdir,rcname,comp)))
+                                        writesac_rich(S,datatype=typeof(d),outdir=string(joinpath(sacrootdir,srname,rcname,comp)))
                                     end
                                 else
                                     if verbose
                                         println("  --> converting: ",dfile)
                                     end
-                                    writesac_seis(d,outdir=string(joinpath(sacrootdir,rcname,comp)))
+                                    writesac_rich(S,datatype=typeof(d),outdir=string(joinpath(sacrootdir,srname,rcname,comp)))
                                 end
                             end
-                        elseif outformat == "TG" #Timestamp -> SAC
-                            if subsetflag_sta
-                                if in(srname,subset[subsetkey_sta]) || in(rcname,subset[subsetkey_sta])
-                                    if subsetflag_comp
-                                        if in(comp,subset[subsetkey_comp])
-                                            if verbose
-                                                println("  --> converting: ",dfile)
-                                            end
-                                            writesac_seis(d,outdir=string(joinpath(sacrootdir,g1)))
-                                        end
-                                    else
-                                        if verbose
-                                            println("  --> converting: ",dfile)
-                                        end
-                                        writesac_seis(d,outdir=string(joinpath(sacrootdir,g1)))
+                        else
+                            if subsetflag_comp
+                                if in(comp,subset[subsetkey_comp])
+                                    if verbose
+                                        println("  --> converting: ",dfile)
                                     end
+                                    writesac_rich(S,datatype=typeof(d),outdir=string(joinpath(sacrootdir,srname,rcname,comp)))
                                 end
                             else
+                                if verbose
+                                    println("  --> converting: ",dfile)
+                                end
+                                writesac_rich(S,datatype=typeof(d),outdir=string(joinpath(sacrootdir,srname,rcname,comp)))
+                            end
+                        end
+                    elseif outformat == "TG" #Timestamp -> SAC
+                        if subsetflag_sta
+                            if in(srname,subset[subsetkey_sta]) || in(rcname,subset[subsetkey_sta])
                                 if subsetflag_comp
                                     if in(comp,subset[subsetkey_comp])
                                         if verbose
                                             println("  --> converting: ",dfile)
                                         end
-                                        writesac_seis(d,outdir=string(joinpath(sacrootdir,g1)))
+                                        writesac_rich(S,datatype=typeof(d),outdir=string(joinpath(sacrootdir,g1)))
                                     end
                                 else
                                     if verbose
                                         println("  --> converting: ",dfile)
                                     end
-                                    writesac_seis(d,outdir=string(joinpath(sacrootdir,g1)))
+                                    writesac_rich(S,datatype=typeof(d),outdir=string(joinpath(sacrootdir,g1)))
                                 end
+                            end
+                        else
+                            if subsetflag_comp
+                                if in(comp,subset[subsetkey_comp])
+                                    if verbose
+                                        println("  --> converting: ",dfile)
+                                    end
+                                    writesac_rich(S,datatype=typeof(d),outdir=string(joinpath(sacrootdir,g1)))
+                                end
+                            else
+                                if verbose
+                                    println("  --> converting: ",dfile)
+                                end
+                                writesac_rich(S,datatype=typeof(d),outdir=string(joinpath(sacrootdir,g1)))
                             end
                         end
                     end
