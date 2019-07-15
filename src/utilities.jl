@@ -190,3 +190,39 @@ function writesac_corr(S::GphysData; outdir::String="", outfile::String="", ts::
     v > 0  && @printf(stdout, "%s: Wrote file %s from channel %i\n", string(now()), fname2, i)
   end
 end
+
+function writesac_seis(S::GphysData; outdir::String="", outfile::String="", ts::Bool=false, v::Int64=0)
+  if ts
+    ift = Int32(4); leven = false
+  else
+    ift = Int32(1); leven = true
+  end
+  tdata = Array{Float32}(undef, 0)
+  N     = S.n
+  for i = 1:N
+    T = getindex(S, i)
+    b = T.t[1,2]
+    dt = 1.0/T.fs
+    (fv, iv, cv, fname) = fill_sac(T, ts, leven)
+
+    # Data
+    x = eltype(T.x) == Float32 ? getfield(T, :x) : map(Float32, T.x)
+    ts && (tdata = map(Float32, μs*(t_expand(T.t, dt) .- b)))
+
+    # Write to file
+    # println(fname)
+    if isempty(outfile)
+      fname2 =fname[1:end-6]*"_"*string(i)*".sac"
+    else
+      fname2 = outfile
+    end
+    # println(fname2)
+    if length(outdir) > 0
+      mkpath(outdir)
+      write_sac_file(outdir*"/"*fname2, fv, iv, cv, x, t=tdata, ts=ts)
+    else
+      write_sac_file(fname2, fv, iv, cv, x, t=tdata, ts=ts)
+    end
+    v > 0  && @printf(stdout, "%s: Wrote file %s from channel %i\n", string(now()), fname2, i)
+  end
+end
