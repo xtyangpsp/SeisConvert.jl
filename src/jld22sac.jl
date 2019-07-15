@@ -95,18 +95,20 @@ function jld22sac(jldfile::String,sacrootdir::String; informat::String="TD", out
                 for dfile = dlist
                     d = jfile[joinpath(g1,dfile)]
                     # println("CorrData to SAC")
-                    stemp = split(d.name,".")
+
                     if typeof(d) == CorrData # data file has CorrData type
+                        stemp = split(d.name,".")
                         srname = join([stemp[1],stemp[2]],".")  #use the first entry in location as the source name
                         rcname = join([stemp[5],stemp[6]],".")
                         comp = d.comp
                         S = corr2seis(d)
-                    elseif typeof(d) == SeisData # data file has SeisData type
+                    elseif typeof(d) == SeisData || typeof(d) == SeisChannel # data file has SeisData type
+                        stemp = split(d.id,".")
                         rcname = join([stemp[1],stemp[2]],".")
                         comp = stemp[4]
-                        S = d
+                        S = SeisData(d)
                     else
-                        error(typeof(d) " datatype not supported.")
+                        error(typeof(d), " datatype not supported.")
                     end
                     if outformat == "SRC" #Source -> Receiver -> SAC
                         if subsetflag_sta

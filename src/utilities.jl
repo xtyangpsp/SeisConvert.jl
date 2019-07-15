@@ -147,8 +147,8 @@ function fill_sac_rich(S::GphysChannel, ts::Bool, leven::Bool;dtype::DataType=Co
         fv[58] = Float32(getfield(loc, :az))
         fv[59] = Float32(getfield(loc, :inc))
       end
-    else
-      @warn "loc field is empty"
+    # else
+    #   @warn "loc field is empty"
     end
 
     # Chars (ugh...)
@@ -205,7 +205,11 @@ function writesac_rich(S::GphysData; datatype::DataType=CorrData, outdir::String
     # Write to file
     # println(fname)
     if isempty(outfile)
-      fname2 =fname[1:end-4]*"_"*string(i)*".sac"
+      if N > 1
+        fname2 =fname[1:end-4]*"_"*string(i)*".sac"
+      else
+        fname2 = fname
+      end
     else
       fname2 = outfile
     end
