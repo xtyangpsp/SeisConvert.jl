@@ -14,15 +14,20 @@ sacdirlist = ls("sac/Raw")
 timestamplist=["2010.001T00.00.00","2010.002T00.00.00"]
 sac2jld2(sacdirlist,timestamplist,"testSeisData.jld2")
 
-# 2. Conver it back to SAC using jld22sac
-println(" Conver it back to SAC using jld22sac")
+# 2. Convert it back to SAC using jld22sac
+println(" Convert it back to SAC using jld22sac")
 jld22sac("testSeisData.jld2","SeisData_SAC_all_TG",informat="TD",outformat="TG",verbose=true)
 
-# 3. Conver it back to SAC using jld22sac, output as SRC format/structure
-println(" Conver it back to SAC using jld22sac, output as SRC format/structure")
+# 3. Convert it back to SAC using jld22sac, output as SRC format/structure
+println(" Convert it back to SAC using jld22sac, output as SRC format/structure")
 jld22sac("testSeisData.jld2","SeisData_SAC_all_SRC",informat="TD",outformat="SRC",verbose=true)
 
-# 4. Conver it back to SAC using jld22sac, subset timestamplist
-println(" Conver it back to SAC using jld22sac, subset timestamplist")
+# 4. Convert it back to SAC using jld22sac, subset timestamplist
+println(" Convert it back to SAC using jld22sac, subset timestamplist")
 subsetcondition = Dict("timestamplist" => ["2010.001T00.00.00"])
 jld22sac("testSeisData.jld2","SeisData_SAC_subset_TG",subset=subsetcondition,informat="TD",outformat="TG",verbose=true)
+
+"""
+convert CorrData to SAC
+"""
+jld22sac("SeisXcorr_testout.jld2","CorrData_SAC_all_SRC",informat="TD",outformat="SRC",verbose=true)
