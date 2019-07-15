@@ -1,6 +1,6 @@
 export jld22sac
 #
-using Dates, SeisIO, JLD2, SeisNoise, Sockets
+using Dates, SeisIO, JLD2, SeisNoise, Sockets, Logging
 """
     Converting JLD2 format to sac files. There are options to read in JLD2 data
     in different types: SeisData (defined in SeisIO) and CorrData (defined in SeisNoise).
@@ -97,16 +97,21 @@ function jld22sac(jldfile::String,sacrootdir::String; informat::String="TD", out
                     # println("CorrData to SAC")
                     # println(typeof(d))
                     if typeof(d) == CorrData # data file has CorrData type
-                        stemp = split(d.name,".")
+                        stemp = split(d.name[1],".")
                         srname = join([stemp[1],stemp[2]],".")  #use the first entry in location as the source name
                         rcname = join([stemp[5],stemp[6]],".")
                         comp = d.comp
                         S = corr2seis(d)
                     elseif typeof(d) == SeisData || typeof(d) == SeisChannel # data file has SeisData type
-                        stemp = split(d.id,".")
+                        # println(d.id)
+                        stemp = split(d.id[1],".")
+                        srname = ""
                         rcname = join([stemp[1],stemp[2]],".")
                         comp = stemp[4]
                         S = SeisData(d)
+                        if S.n > 1
+                            @warn "$dfile has more than 1 channels, only headers from the 1st channel are used in convering!"
+                        end
                     else
                         error(typeof(d), " datatype not supported.")
                     end
