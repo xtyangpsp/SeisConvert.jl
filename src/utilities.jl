@@ -1,5 +1,5 @@
 # some utility functions.
-using SeisIO, Printf, Logging
+using SeisIO, SeisNoise, Printf, Logging
 
 export readfilelist, writesac_rich
 
