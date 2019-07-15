@@ -88,14 +88,14 @@ function jld22sac(jldfile::String,sacrootdir::String; informat::String="TD", out
     end
 
     for g1 = group1
-        if g1 != "info"
+        if g1 != "info" && g1 != "errors"
             if informat == "TD" #only one level group
                 println("Working on group: ",g1)
                 dlist = keys(jfile[g1]) #data list
                 for dfile = dlist
                     d = jfile[joinpath(g1,dfile)]
                     # println("CorrData to SAC")
-
+                    # println(typeof(d))
                     if typeof(d) == CorrData # data file has CorrData type
                         stemp = split(d.name,".")
                         srname = join([stemp[1],stemp[2]],".")  #use the first entry in location as the source name
