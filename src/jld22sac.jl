@@ -97,7 +97,7 @@ function jld22sac(jldfile::String,sacrootdir::String; informat::String="TD", out
                     # println("CorrData to SAC")
                     # println(typeof(d))
                     if typeof(d) == CorrData # data file has CorrData type
-                        stemp = split(d.name[1],".")
+                        stemp = split(d.name,".")
                         srname = join([stemp[1],stemp[2]],".")  #use the first entry in location as the source name
                         rcname = join([stemp[5],stemp[6]],".")
                         comp = d.comp
