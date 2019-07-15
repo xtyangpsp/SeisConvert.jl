@@ -7,6 +7,11 @@
 
 **A tool box to convert seismic data between different formats**
 
+## Major tools
+1. `sac2jld2`: converts SAC files to JLD2 file, structured as timestamp -> SeisData
+2. `jld22sac`: converts JLD2 file, with option of handling multiple structures, to SAC files
+3. `corr2seis`: converts CorrData type data to SeisData type, with rich header information stored in `misc` field
+
 ## Installation
 
 From the Julia command prompt:
