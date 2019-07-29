@@ -31,6 +31,6 @@ sac2jld2(filelist,"2010.001T00.00.00","Event_2010_001.jld2")
 #
 # All sac files will be saved into one single JLD2 file (out), which is explicitly specified as outfile.
 # """
-sacdirlist = ls("sac/Raw")
-timestamplist=["2010.001T00.00.00","2010.002T00.00.00"]
-sac2jld2(sacdirlist,timestamplist,"testoutput_2groups.jld2")
+sacdirlist = ls("sac/Raw/Event_201*")
+timestamplist=["2010.001T00.00.00","2010.002T00.00.00","2011.041T00.00.00"]
+sac2jld2(sacdirlist,timestamplist,"testoutput_3groups.jld2")
