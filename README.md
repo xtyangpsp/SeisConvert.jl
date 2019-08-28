@@ -9,8 +9,9 @@
 
 ## Major tools
 1. `sac2jld2`: converts SAC files to JLD2 file, structured as timestamp -> SeisData
-2. `jld22sac`: converts JLD2 file, with option of handling multiple structures, to SAC files
-3. `corr2seis`: converts CorrData type data to SeisData type, with rich header information stored in `misc` field
+2. `segy2jld2`: converts PASSCAL SEGY files to JLD2 file, organized as timestamp -> SeisData
+3. `jld22sac`: converts JLD2 file, with option of handling multiple structures, to SAC files
+4. `corr2seis`: converts CorrData type data to SeisData type, with rich header information stored in `misc` field
 
 ## Installation
 
