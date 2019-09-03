@@ -1,4 +1,4 @@
-using SeisIO, JLD2, Distributed, Sockets
+using SeisIO, JLD2, Distributed, DelimitedFiles, Sockets,Logging
 
 export segy2jld2
 #
@@ -16,6 +16,11 @@ Key features:
 
 """
 
+"""
+Naming convention for segyfiles when need to extract/update station information.
+    YY.DDD.HH.MM.SS.SITE.CHAN
+    02.089.00.01.50.7460.1
+"""
 
 """
 
@@ -26,15 +31,41 @@ The output file name will be the same as the input, with new extension *.jld2.
 
 """
 
-function segy2jld2(infile::String)
+function segy2jld2(infile::String;siteinfodict::Dict=Dict())
     print("Same file, new extension of jld2.\n")
     print("Converting PASSCAL SEGY file: [ ",infile," ] ... \n")
+
     if occursin("segy",infile) || occursin("SEGY",infile)
-        outfile = join([infile[1:end-4],"jld2"]); #trim the file name to remove .segy
+        filebase=infile[1:end-4]
     else
-        outfile = join([infile,".jld2"]);
+        filebase=infile
     end
+    outfile = join([filebase,".jld2"]);
+
     datin = SeisIO.read_data("passcal",infile, swap=true, full=true);
+    if length(siteinfodict) > 0
+        net,sta,loc,chan=split(datin.id[1],".")
+        if occursin("/",filebase)
+            filebasetemp=split(filebase,"/")
+            parsename=split(filebasetemp[end],".")
+        else
+            parsename=split(filebase,".")
+        end
+        if length(net)==0 #no net information
+            net=siteinfodict[collect(keys(siteinfodict))[1]][1]
+            @warn "Using the first netcode $net in the siteinfodict as the netcode. This should be changed for a more generic usage."
+        end
+        if length(sta)==0 #no station information
+            sta=parsename[6] #get the station name from the infile name, the 6th element
+            @warn "Using the station name $sta from the 6th element of the filename."
+        end
+        if length(chan)==0 #no channel information
+            chan=parsename[7] #get the channel name from the infile name, the 7th element
+            @warn "Using the channel name $chan from the 7th element of the filename."
+        end
+        siteid=join([net,sta,loc,chan],".")
+        update_siteinfo!(datin,siteid,siteinfodict)
+    end
     datin.misc[1]["dlerror"] = 0
 
     stationlist = String[];
@@ -72,10 +103,39 @@ Saves individual segy file (in) to JLD2 file (out), which is explicitly specifie
 
 """
 
-function segy2jld2(infile::String,outfile::String)
+function segy2jld2(infile::String,outfile::String;siteinfodict::Dict=Dict())
     print("Converting PASSCAL SEGY file: [ ",infile," ] ... \n")
+    if occursin("segy",infile) || occursin("SEGY",infile)
+        filebase=infile[1:end-4]
+    else
+        filebase=infile
+    end
 
     datin = SeisIO.read_data("passcal",infile, swap=true, full=true);
+    if length(siteinfodict) > 0
+        net,sta,loc,chan=split(datin.id[1],".")
+        if occursin("/",filebase)
+            filebasetemp=split(filebase,"/")
+            parsename=split(filebasetemp[end],".")
+        else
+            parsename=split(filebase,".")
+        end
+        if length(net)==0 #no net information
+            net=siteinfodict[collect(keys(siteinfodict))[1]][1]
+            @warn "Using the first netcode $net in the siteinfodict as the netcode. This should be changed for a more generic usage."
+        end
+        if length(sta)==0 #no station information
+            sta=parsename[6] #get the station name from the infile name, the 6th element
+            @warn "Using the station name $sta from the 6th element of the filename."
+        end
+        if length(chan)==0 #no channel information
+            chan=parsename[7] #get the channel name from the infile name, the 7th element
+            @warn "Using the channel name $chan from the 7th element of the filename."
+        end
+        siteid=join([net,sta,loc,chan],".")
+        update_siteinfo!(datin,siteid,siteinfodict)
+    end
+
     datin.misc[1]["dlerror"] = 0
 
     stationlist = String[];
@@ -121,7 +181,7 @@ JLD2 file (out), which is explicitly specified.
     verbose: if true, the code will print out more messages. Default is false.
 """
 
-function segy2jld2(filelist::Array{String,1},timestamp::String,outfile::String;verbose::Bool=false)
+function segy2jld2(filelist::Array{String,1},timestamp::String,outfile::String;verbose::Bool=false,siteinfodict::Dict=Dict())
     # print("I convert and pack all SEGY files to a JLD2 file.\n")
 
     #read the filenames from the infilelist into a strinng array
@@ -153,7 +213,37 @@ function segy2jld2(filelist::Array{String,1},timestamp::String,outfile::String;v
     for infile = filelist
         println("Converting SEGY file: [ ",infile," ]")
 
+        if occursin("segy",infile) || occursin("SEGY",infile)
+            filebase=infile[1:end-4]
+        else
+            filebase=infile
+        end
+
         datin = SeisIO.read_data("passcal",infile, swap=true, full=true);
+        if length(siteinfodict) > 0
+            net,sta,loc,chan=split(datin.id[1],".")
+            if occursin("/",filebase)
+                filebasetemp=split(filebase,"/")
+                parsename=split(filebasetemp[end],".")
+            else
+                parsename=split(filebase,".")
+            end
+            if length(net)==0 #no net information
+                net=siteinfodict[collect(keys(siteinfodict))[1]][1]
+                @warn "Using the first netcode $net in the siteinfodict as the netcode. This should be changed for a more generic usage."
+            end
+            if length(sta)==0 #no station information
+                sta=parsename[6] #get the station name from the infile name, the 6th element
+                @warn "Using the station name $sta from the 6th element of the filename."
+            end
+            if length(chan)==0 #no channel information
+                chan=parsename[7] #get the channel name from the infile name, the 7th element
+                @warn "Using the channel name $chan from the 7th element of the filename."
+            end
+            siteid=join([net,sta,loc,chan],".")
+            update_siteinfo!(datin,siteid,siteinfodict)
+        end
+
         datin.misc[1]["dlerror"] = 0
         push!(stationlist,datin.id[1])  #pass the 1st element of datin.id[] to the station list
         stimetemp = datin.t[1][3]*1e-6; #convert mseconds to seconds;
@@ -219,7 +309,7 @@ All segy files will be saved into one single JLD2 file (out), which is explicitl
     verbose: if true, the code will print out more messages. Default is false.
 """
 
-function segy2jld2(datdirlist::Array{String,1},timestamplist::Array{String,1},outfile::String;verbose::Bool=false)
+function segy2jld2(datdirlist::Array{String,1},timestamplist::Array{String,1},outfile::String;verbose::Bool=false,siteinfodict::Dict=Dict())
     if length(datdirlist) != length(timestamplist)
         error("datdirlist and timestamplist must be the same length!")
     end
@@ -255,6 +345,30 @@ function segy2jld2(datdirlist::Array{String,1},timestamplist::Array{String,1},ou
         stemp_pre = "-"
         for infile = filelist
             datin = SeisIO.read_data("passcal",infile,swap=true,full=true);
+            if length(siteinfodict) > 0
+                net,sta,loc,chan=split(datin.id[1],".")
+                if occursin("/",filebase)
+                    filebasetemp=split(filebase,"/")
+                    parsename=split(filebasetemp[end],".")
+                else
+                    parsename=split(filebase,".")
+                end
+                if length(net)==0 #no net information
+                    net=siteinfodict[collect(keys(siteinfodict))[1]][1]
+                    @warn "Using the first netcode $net in the siteinfodict as the netcode. This should be changed for a more generic usage."
+                end
+                if length(sta)==0 #no station information
+                    sta=parsename[6] #get the station name from the infile name, the 6th element
+                    @warn "Using the station name $sta from the 6th element of the filename."
+                end
+                if length(chan)==0 #no channel information
+                    chan=parsename[7] #get the channel name from the infile name, the 7th element
+                    @warn "Using the channel name $chan from the 7th element of the filename."
+                end
+                siteid=join([net,sta,loc,chan],".")
+                update_siteinfo!(datin,siteid,siteinfodict)
+            end
+
             datin.misc[1]["dlerror"] = 0
 
             if datdir == datdirlist[1] && infile == filelist[1]
