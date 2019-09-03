@@ -1,7 +1,7 @@
 # some utility functions.
 using SeisIO, SeisNoise, Printf, DelimitedFiles,Logging
 
-export readfilelist, writesac_rich,compile_stationinfo
+export readfilelist, writesac_rich,compile_stationinfo,update_siteinfo!
 
 const sac_nul_f = -12345.0f0
 const sac_nul_i = Int32(-12345)
@@ -22,12 +22,38 @@ end
 function compile_stationinfo(siteinfofile::String;separator::AbstractChar=' ',header::Bool=false)
     siteinfotemp=readdlm(siteinfofile,',',header=header)
     siteinfodict=Dict()
-
+    prevsiteid=""
     for i = 1:size(siteinfotemp[1],1)
-      siteinfodict[siteinfotemp[1][i,1]*"."*siteinfotemp[1][i,2]*".."*siteinfotemp[1][i,6]] = siteinfotemp[1][i,:]
+        siteid="$(siteinfotemp[1][i,1])"*"."*"$(siteinfotemp[1][i,2])"
+        if siteid == prevsiteid
+            continue
+        end
+      siteinfodict["$(siteinfotemp[1][i,1])"*"."*"$(siteinfotemp[1][i,2])"] = siteinfotemp[1][i,:]
+      prevsiteid=siteid
     end
     return(siteinfodict)
 end
+#utility function
+function update_siteinfo!(S::SeisData,siteid::String,sitedict::Dict)
+    for i = 1:size(S)[1]
+        SC=SeisChannel()
+        SC=S[i]
+        SC.id=siteid
+        SC.name=siteid
+        siteid_temp=join(split(siteid,".")[1:2],".")
+        setfield!(SC.loc,:lat,Float64(sitedict[siteid_temp][3]))
+        setfield!(SC.loc,:lon,Float64(sitedict[siteid_temp][4]))
+        setfield!(SC.loc,:el,Float64(sitedict[siteid_temp][5]))
+        # = C.loc
+        # TO-DO get misc values
+        SC.misc["stla"] = sitedict[siteid_temp][3]
+        SC.misc["stlo"] = sitedict[siteid_temp][4]
+        SC.misc["stel"] = sitedict[siteid_temp][5]
+        S[i]=SC
+    end
+    return nothing
+end
+
 # this function and fill_sac_rich(), and writesac() were modified from those in SeisIO
 # I modified it to save correlation data, which has two station information in the name.
 function write_sac_file(fname::String, fv::Array{Float32,1}, iv::Array{Int32,1}, cv::Array{UInt8,1}, x::Array{Float32,1};

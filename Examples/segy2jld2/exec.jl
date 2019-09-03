@@ -34,3 +34,12 @@ segy2jld2(filelist,"2002.089T00.01.50","2002.089T00.01.50.jld2")
 segydirlist = ls("segy/02.089*")
 timestamplist=["2002.089T00.01.50","2002.089T00.02.10"]
 segy2jld2(segydirlist,timestamplist,"testoutput_2groups.jld2")
+
+
+"""
+examples when we need to update site information in the segy files.
+compile_stationinfo() is a function in utilities.jl
+"""
+siteinfodict=compile_stationinfo("station_list.txt",separator=',',header=true)
+segy2jld2(infile,"02.089.00.01.50.7460.1_updatedsiteinfo.jld2",siteinfodict=siteinfodict)
+#other methods have the similar usage with an additional argument: siteinfodict=your_siteinfodict
