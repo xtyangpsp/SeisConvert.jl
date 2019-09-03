@@ -1,7 +1,7 @@
 # some utility functions.
-using SeisIO, SeisNoise, Printf, Logging
+using SeisIO, SeisNoise, Printf, DelimitedFiles,Logging
 
-export readfilelist, writesac_rich
+export readfilelist, writesac_rich,compile_stationinfo
 
 const sac_nul_f = -12345.0f0
 const sac_nul_i = Int32(-12345)
@@ -19,6 +19,15 @@ function readfilelist(infilelist::String)
     return(outlist)
 end
 
+function compile_stationinfo(siteinfofile::String;separator::AbstractChar=' ',header::Bool=false)
+    siteinfotemp=readdlm(siteinfofile,',',header=header)
+    siteinfodict=Dict()
+
+    for i = 1:size(siteinfotemp[1],1)
+      siteinfodict[siteinfotemp[1][i,1]*"."*siteinfotemp[1][i,2]*".."*siteinfotemp[1][i,6]] = siteinfotemp[1][i,:]
+    end
+    return(siteinfodict)
+end
 # this function and fill_sac_rich(), and writesac() were modified from those in SeisIO
 # I modified it to save correlation data, which has two station information in the name.
 function write_sac_file(fname::String, fv::Array{Float32,1}, iv::Array{Int32,1}, cv::Array{UInt8,1}, x::Array{Float32,1};
