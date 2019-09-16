@@ -182,10 +182,14 @@ function corr2seis(C::CorrData)
         else
             SC.misc["whitened"] =  "WHITENED"
         end
-        if C.time_norm
-            SC.misc["time_norm"] =  "TIMENORM"
+        if typeof(C.time_norm) == Bool
+            if C.time_norm
+                SC.misc["time_norm"] =  "TIMENORM"
+            else
+                SC.misc["time_norm"] =  "NOTIMENM"
+            end
         else
-            SC.misc["time_norm"] =  "NOTIMENM"
+            SC.misc["time_norm"] =  C.time_norm
         end
         S[i] = SC
     end
