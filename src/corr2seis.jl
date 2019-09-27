@@ -111,7 +111,7 @@ function corr2seis(C::CorrData)
         @warn "$(C.name) : 'location' field not defined in misc. Use default locations (0.0)."
     end
 
-    for i = 1:size(S)[1]
+    for i = 1:S.n
         SC = SeisChannel();
         # for tv in C.corr[:,i]
         #     push!(SC.x,tv)
