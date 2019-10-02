@@ -215,6 +215,9 @@ filelist is assigned a timestamp in timestamplist.
 """
 
 function sac2jld2(filelist::Array{String,1},timestamplist::Array{String,1},outfile::String,verbose::Bool=false)
+    if length(filelist) != length(timestamplist)
+        error("filelist and timestamplist must be the same length!")
+    end
     stationlist = String[];
 
     #get some intial information from the first sac file.
