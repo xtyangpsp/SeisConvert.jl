@@ -214,7 +214,7 @@ filelist is assigned a timestamp in timestamplist.
     verbose: if true, the code will print out more messages. Default is false.
 """
 
-function sac2jld2(filelist::Array{String,1},timestamplist::Array{String,1},outfile::String,verbose::Bool=false)
+function sac2jld2(filelist::Array{String,1};timestamplist::Array{String,1},outfile::String,verbose::Bool=false)
     if length(filelist) != length(timestamplist)
         error("filelist and timestamplist must be the same length!")
     end
