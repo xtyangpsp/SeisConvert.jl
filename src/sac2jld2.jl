@@ -199,6 +199,96 @@ end
 
 """
 
+    sac2jld2(filelist,timestamplist,outfile,verbose=false)
+
+Saves sac files based on a filelist generated using ls() in Julia to
+JLD2 file (out), which is explicitly specified. This function assumes each file in
+filelist is assigned a timestamp in timestamplist.
+
+    Arguments:
+    filelist: An String Array including all sacfiles with the same tiemstamp, e.g., same day
+    tiemstamplist: this must be specified for all the sac files in filelist. This list has to be
+                the same length as filelist.
+    outfile: output file name for the JLD2 file. All data fiels will be readin and
+                saved to a single JLD2 file.
+    verbose: if true, the code will print out more messages. Default is false.
+"""
+
+function sac2jld2(filelist::Array{String,1},timestamplist::Array{String,1},outfile::String,verbose::Bool=false)
+    stationlist = String[];
+
+    #get some intial information from the first sac file.
+    sacin0 = SeisIO.read_data("sac",filelist[1]);
+    stimemin = sacin0.t[1][3]*1e-6; #initial starttime in seconds;
+    ftemp = sacin0.t[1][2]/sacin0.fs; #convert from number of samples to time duration.
+    saclengthmax = ftemp[1]
+    etimemax = stimemin + saclengthmax;
+
+    file = jldopen(outfile, "w");
+    file["info/DLtimestamplist"] = unique(timestamplist);
+    stemp_pre = "-"
+    count = 0
+    # stationlisttemp = String[];
+    #To deal with multiple channel issue, I am doing the loop twice.
+    # 1. The first loop with collect multiple channels into one SeisData object.
+    # 2. The second loop will work through the actual number of SeisData objects, counted by `count`
+    Sall = SeisData[];
+    Str_all = String[];
+
+    #in the loop for each sac file. we will find the minimum starttime, maximum endtime, and maximum saclength.
+    for (infile,ts) in zip(filelist,timestamplist)
+        println("Converting SAC file: [ ",infile," ]")
+
+        sacin = SeisIO.read_data("sac",infile,full=true);
+        sacin.misc[1]["dlerror"] = 0
+        push!(stationlist,sacin.id[1])  #pass the 1st element of sacin.id[] to the station list
+        # stationinfo = Dict(["stationlist" => stationlist,"stationmethod" => "sac2jld2","stationsrc" => "converted"])
+        stimetemp = sacin.t[1][3]*1e-6; #convert mseconds to seconds;
+        if stimetemp < stimemin
+            stimemin = stimetemp
+        end
+        saclength = sacin.t[1][2]/sacin.fs; #convert from number of samples to time duration.
+        if saclength[1] > saclengthmax
+            saclengthmax = saclength[1]
+        end
+        etimetemp = stimetemp + saclength[1]
+        if etimetemp > etimemax
+            etimemax = etimetemp
+        end
+
+        #save to jld2
+        stemp = joinpath(ts,sacin.id[1]);
+        if stemp == stemp_pre
+            println(stemp," exists. Appending to form multiple channels.")
+            append!(Sall[count],SeisData(sacin))
+        else
+            push!(Sall,SeisData(sacin))
+            push!(Str_all,stemp)
+            count += 1
+            # file[stemp] = SeisData(sacin);
+        end
+        stemp_pre = stemp
+    end
+    starttime = u2d(stimemin); #convert union time to calendar time;
+    endtime = u2d(etimemax);
+    #the following info dat is saved after running through the whole group.
+    file["info/stationlist"] = unique(stationlist);
+    file["info/starttime"]   = string(starttime)
+    file["info/endtime"]     = string(endtime)
+    file["info/DL_time_unit"]= saclengthmax; #length of the data in time (duration), not number of samples
+
+    #2. start to save the data to jld2
+    for i = 1:count
+        file[Str_all[i]] = Sall[i]
+    end #end of loop for all sac files within one group/directory
+
+    JLD2.close(file);
+
+    print("Saved JLD2 file to: ", outfile, "\n");
+end
+
+"""
+
     sac2jld2(fhandle::JLDfile, sacdir::String,timestamp::String,verbose::Bool=false)
 
 Saves sac files based in sacdir to JLD2 file handle (fhandle), tagged as timestamp.
