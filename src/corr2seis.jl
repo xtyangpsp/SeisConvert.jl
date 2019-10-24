@@ -1,5 +1,6 @@
 # convert CorrData to SeisData
 using SeisIO, SeisNoise, Dates, Logging
+export corr2seis
 """ Example of CorrData
 
 CorrData with 1 Corrs
