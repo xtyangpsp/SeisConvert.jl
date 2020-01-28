@@ -179,9 +179,9 @@ function corr2seis(C::CorrData)
         #     SC.misc["kuser2"] =  "NOTIMENM"
         # end
         if C.whitened
-            SC.misc["whitened"] =  "NOWHITND"
-        else
             SC.misc["whitened"] =  "WHITENED"
+        else
+            SC.misc["whitened"] =  "NOWHITND"
         end
         if typeof(C.time_norm) == Bool
             if C.time_norm
